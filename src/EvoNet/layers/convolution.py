@@ -12,6 +12,12 @@ class Reducer(nn.Module):
         for layer in self.layers:
             out = out + layer(x)
         return out
+    
+    def conjugate(self, x):
+        out = 0
+        for layer in self.layers:
+            out = out + layer.conjugate(x)
+        return out
 
 
 class ComplexLinear(nn.Module):
@@ -61,6 +67,16 @@ class HarmonicConv2d(nn.Module):
         out = 0 if self.bias is None else self.bias
         for d in range(1, self.dilations + 1):
             features = self.flatten(torch.cos(torch.conv2d(x, eigen, dilation=d))) / torch.linalg.norm(eigen)
+            out = out + self.layers[d-1](features)
+        
+        return out
+    
+    def conjugate(self, x):
+        device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
+        eigen = self.template * torch.pi
+        out = 0 if self.bias is None else self.bias
+        for d in range(1, self.dilations + 1):
+            features = self.flatten(torch.sin(torch.conv2d(x, eigen, dilation=d))) / torch.linalg.norm(eigen)
             out = out + self.layers[d-1](features)
         
         return out
