@@ -46,7 +46,8 @@ class HarmonicConv2d(nn.Module):
         for d in range(1, self.dilations + 1):
             dilated_height, dilated_width = d*(height-1)+1, d*(width-1)+1
             basis_count = (in_features[0] - dilated_height + 1) * (in_features[1] - dilated_width + 1)
-            self.layers.append(ComplexLinear(basis_count, out_features, bias=False))
+            # self.layers.append(ComplexLinear(basis_count, out_features, bias=False))
+            self.layers.append(nn.Linear(basis_count, out_features, bias=False))
         
         if bias:
             self.bias = nn.Parameter(torch.randn(out_features))
@@ -56,10 +57,10 @@ class HarmonicConv2d(nn.Module):
     
     def forward(self, x):
         device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
-        eigen = torch.relu(2*self.template-1) * torch.pi / 2
+        eigen = self.template * torch.pi
         out = 0 if self.bias is None else self.bias
         for d in range(1, self.dilations + 1):
-            features = self.flatten(torch.exp(1j * torch.conv2d(x, eigen, dilation=d))) / torch.linalg.norm(eigen)
+            features = self.flatten(torch.cos(torch.conv2d(x, eigen, dilation=d))) / torch.linalg.norm(eigen)
             out = out + self.layers[d-1](features)
         
         return out
