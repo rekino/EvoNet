@@ -21,14 +21,16 @@ class Reducer(nn.Module):
 
 
 class ComplexLinear(nn.Module):
-    def __init__(self, in_features, out_features, bias=True) -> None:
+    def __init__(self, in_features, out_features, bias=True, real=False) -> None:
         super().__init__()
+        self.real = real
         self.weights_real = nn.Parameter(torch.randn(in_features, out_features))
-        self.weights_imag = nn.Parameter(torch.randn(in_features, out_features))
+        self.weights_imag = torch.zeros_like(self.weights_real) if real else nn.Parameter(torch.randn(in_features, out_features))
+
         self.bias = bias
         if bias:
             self.bias_real = nn.Parameter(torch.randn(out_features))
-            self.bias_imag = nn.Parameter(torch.randn(out_features))
+            self.bias_imag = torch.zeros_like(self.bias_real) if real else nn.Parameter(torch.randn(out_features))
         
     def forward(self, x):
         weights = self.weights_real - 1j * self.weights_imag
