@@ -28,7 +28,7 @@ class TestLayers(unittest.TestCase):
         self.assertFalse(np.any(np.isinf(out)))
         self.assertFalse(np.any(np.isnan(out)))
 
-        out = layer.conjugate(2*torch.rand(4, 1, 3, 3)-1).detach().numpy()
+        out = layer.conjugate(torch.rand(4, 1, 3, 3)).detach().numpy()
 
         self.assertEqual(len(out.shape), 2)
         self.assertEqual(out.shape[0], 4)
@@ -51,7 +51,7 @@ class TestLayers(unittest.TestCase):
         self.assertFalse(np.any(np.isinf(out)))
         self.assertFalse(np.any(np.isnan(out)))
 
-        out = layer.conjugate(2*torch.rand(4, 1, 3, 3)-1).detach().numpy()
+        out = layer.conjugate(torch.rand(4, 1, 3, 3)).detach().numpy()
 
         self.assertEqual(len(out.shape), 2)
         self.assertEqual(out.shape[0], 4)
