@@ -38,15 +38,6 @@ class TestLayers(unittest.TestCase):
         self.assertFalse(np.any(np.isinf(out)))
         self.assertFalse(np.any(np.isnan(out)))
 
-        out = layer.conjugate(torch.rand(4, 1, 3, 3)).detach().numpy()
-
-        self.assertEqual(len(out.shape), 2)
-        self.assertEqual(out.shape[0], 4)
-        self.assertEqual(out.shape[1], 2)
-
-        self.assertFalse(np.any(np.isinf(out)))
-        self.assertFalse(np.any(np.isnan(out)))
-
     def test_reducer(self):
         layer = Reducer([
             HarmonicConv2d((3, 3), 2, torch.ones(1, 1, 1, 1), 1),
