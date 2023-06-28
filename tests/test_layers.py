@@ -27,7 +27,7 @@ class TestLayers(unittest.TestCase):
         self.assertFalse(np.any(np.isinf(out)))
         self.assertFalse(np.any(np.isnan(out)))
 
-    def test_harmonic_conv2d(self):
+    def test_holomorphic_conv2d(self):
         layer = HolomorphicConv2d((3, 3), 2, torch.ones(1, 1, 1, 1), 1)
         out = layer(torch.rand(4, 1, 3, 3)).detach().numpy()
 
@@ -60,7 +60,3 @@ class TestLayers(unittest.TestCase):
 
         self.assertFalse(np.any(np.isinf(out)))
         self.assertFalse(np.any(np.isnan(out)))
-
-
-
-
