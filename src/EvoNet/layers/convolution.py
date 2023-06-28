@@ -69,3 +69,44 @@ class HolomorphicConv2d(nn.Module):
             out = out + self.layers[d-1](features)
         
         return out
+
+
+class HarmonicConv2d(nn.Module):
+    def __init__(self, in_features, out_features, template, dilations, bias=True) -> None:
+        super().__init__()
+
+        self.in_features = in_features
+        self.out_features = out_features
+        
+        self.layers = nn.ModuleList()
+        self.dilations = dilations
+
+        height, width = template.shape[-2:]
+        for d in range(1, dilations + 1):
+            dilated_height, dilated_width = d*(height-1)+1, d*(width-1)+1
+            basis_count = (in_features[0] - dilated_height + 1) * (in_features[1] - dilated_width + 1)
+            self.layers.append(nn.Linear(basis_count, out_features, bias=False))
+        
+        if bias:
+            self.bias = nn.Parameter(torch.randn(out_features))
+        
+        self.flatten = nn.Flatten()
+
+        self.degree = torch.sum(template, dtype=torch.int).item()
+        indices = torch.nonzero(template, as_tuple=True)
+        self.template = torch.zeros(2**self.degree, *template.shape[1:])
+        for i, flip in enumerate(product([1, -1], repeat=self.degree)):
+            temp = template
+            temp[indices] = temp[indices] * torch.asarray(flip)
+            self.template[i] = temp[0]
+
+    def forward(self, x):
+        # device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
+        eigen = self.template * torch.pi
+        out = 0 if self.bias is None else self.bias
+        for d in range(1, self.dilations + 1):
+            temp = torch.cos(torch.conv2d(x, eigen, dilation=d))
+            features = self.flatten(torch.sum(temp, dim=1, keepdim=True) / 2**self.degree)
+            out = out + self.layers[d-1](features / torch.linalg.norm(eigen))
+        
+        return out
