@@ -1,23 +1,20 @@
 import torch
 import torch.nn as nn
 
+from itertools import product
+
 
 class Reducer(nn.Module):
-    def __init__(self, layers) -> None:
+    def __init__(self, layers, activation=None) -> None:
         super().__init__()
         self.layers = nn.ModuleList(layers)
+        self.activation = activation
     
     def forward(self, x):
         out = 0
         for layer in self.layers:
             out = out + layer(x)
-        return out
-    
-    def conjugate(self, x):
-        out = 0
-        for layer in self.layers:
-            out = out + layer.conjugate(x)
-        return out
+        return out if self.activation is None else self.activation(out)
 
 
 class ComplexLinear(nn.Module):
@@ -40,8 +37,8 @@ class ComplexLinear(nn.Module):
         return out
 
 
-class HarmonicConv2d(nn.Module):
-    def __init__(self, in_features, out_features, template, dilations, bias=True) -> None:
+class HolomorphicConv2d(nn.Module):
+    def __init__(self, in_features, out_features, template, dilations, bias=True, real=False) -> None:
         super().__init__()
 
         self.in_features = in_features
@@ -54,18 +51,19 @@ class HarmonicConv2d(nn.Module):
         for d in range(1, self.dilations + 1):
             dilated_height, dilated_width = d*(height-1)+1, d*(width-1)+1
             basis_count = (in_features[0] - dilated_height + 1) * (in_features[1] - dilated_width + 1)
-            self.layers.append(ComplexLinear(basis_count, out_features, bias=False, real=True))
+            self.layers.append(ComplexLinear(basis_count, out_features, bias=False, real=real))
         
         if bias:
-            self.bias = nn.Parameter(torch.randn(out_features))
+            self.bias_real = nn.Parameter(torch.randn(out_features))
+            self.bias_imag = torch.zeros_like(self.bias_real) if real else nn.Parameter(torch.randn(out_features))
         
         self.flatten = nn.Flatten()
 
     
     def forward(self, x):
-        device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
+        # device = 'cuda' if next(self.parameters()).is_cuda else 'cpu'
         eigen = self.template * torch.pi
-        out = 0 if self.bias is None else self.bias
+        out = 0 if self.bias_real is None else (self.bias_real + 1j * self.bias_imag)
         for d in range(1, self.dilations + 1):
             features = self.flatten(torch.exp(1j * torch.conv2d(x, eigen, dilation=d))) / torch.linalg.norm(eigen)
             out = out + self.layers[d-1](features)

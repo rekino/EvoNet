@@ -3,12 +3,12 @@ import torch
 import numpy as np
 
 from src.EvoNet.filters.holomorphic import Firewall
-from src.EvoNet.layers.convolution import HarmonicConv2d
+from src.EvoNet.layers.convolution import HolomorphicConv2d
 
 
 class TestFilters(unittest.TestCase):
     def test_firewall(self):
-        model = HarmonicConv2d((3, 3), 2, torch.ones(1, 1, 1, 1), 1)
+        model = HolomorphicConv2d((3, 3), 2, torch.ones(1, 1, 1, 1), 1)
         firewall = Firewall(model, iterate=20, lr=0.001)
 
         x = torch.rand(4, 1, 3, 3)
