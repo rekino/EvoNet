@@ -16,4 +16,4 @@ class Hyp0F1(Function):
         # Backward pass using mpmath.hyp0f1 derivative
         b, z = ctx.saved_tensors
         grad_input = Hyp0F1.apply(b+1, z) / b
-        return grad_input * grad_output
+        return None, grad_input * grad_output
