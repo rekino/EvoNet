@@ -5,7 +5,7 @@ from torch.autograd import grad
 from src.EvoNet.functions import Hyp0F1
 
 
-class TestFunctions(unittest.TestCase):
+class TestTorchFunctions(unittest.TestCase):
 
     def test_hyp0f1_val(self):
         z = torch.tensor(1.0, requires_grad=True)
