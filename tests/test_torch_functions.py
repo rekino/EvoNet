@@ -5,9 +5,9 @@ from torch.autograd import grad
 from src.EvoNet.functions import Hyp0F1, Hyp2F1
 
 
-class TestTorchFunctions(unittest.TestCase):
+class TestHyp0F1Function(unittest.TestCase):
 
-    def test_hyp0f1_val(self):
+    def test_value(self):
         z = torch.tensor(1.0, requires_grad=False)
         b = 1/2
         res = Hyp0F1.apply(b, z)
@@ -20,7 +20,7 @@ class TestTorchFunctions(unittest.TestCase):
 
         assert torch.allclose(res, true_res)
 
-    def test_hyp0f1_vmap(self):
+    def test_vmap(self):
         hyp0f1 = torch.vmap(Hyp0F1.apply, in_dims=(None, 0))
 
         z = torch.linspace(0, 1, 2, requires_grad=False)
@@ -42,7 +42,7 @@ class TestTorchFunctions(unittest.TestCase):
         assert torch.allclose(res[0, :], true_res_0)
         assert torch.allclose(res[1, :], true_res_1)
 
-    def test_hyp0f1_der(self):
+    def test_derivative(self):
         z = torch.tensor(1.0, requires_grad=True)
         b = 1/2
         res = Hyp0F1.apply(b, z)
@@ -52,7 +52,10 @@ class TestTorchFunctions(unittest.TestCase):
 
         assert torch.allclose(dz, true_dz)
 
-    def test_hyp2f1_val(self):
+
+class TestHyp2F1Function(unittest.TestCase):
+
+    def test_value(self):
         x = torch.tensor(0.0, requires_grad=False)
         a, b, c = -1/2, 3/2, 3/2
         res = Hyp2F1.apply(a, b, c, x)
@@ -60,7 +63,7 @@ class TestTorchFunctions(unittest.TestCase):
 
         assert torch.allclose(res, true_res)
 
-    def test_hyp2f1_der(self):
+    def test_derivative(self):
         x = torch.tensor(0.0, requires_grad=True)
         a, b, c = -1/2, 3/2, 3/2
         res = Hyp2F1.apply(a, b, c, x)
@@ -70,7 +73,7 @@ class TestTorchFunctions(unittest.TestCase):
 
         assert torch.allclose(dx, true_dx)
 
-    def test_hyp2f1_vmap(self):
+    def test_vmap(self):
         a, b, c = -1/2, 3/2, 3/2
         x = torch.linspace(0, 0.9, 2)
         res = Hyp2F1.apply(a, b, c, x)
