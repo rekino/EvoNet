@@ -5,12 +5,14 @@ import mpmath
 import numpy as np
 from scipy.special import hyp2f1
 
+hyp0f1 = np.vectorize(mpmath.hyp0f1)
+
 
 class Hyp0F1(Function):
     @staticmethod
     def forward(b, z):
-        b = torch.tensor(b)
-        result = float(mpmath.hyp0f1(b.item(), z.detach().item()))
+        z = z.detach() if z.requires_grad else z
+        result = hyp0f1(b, z).astype('float32')
         return torch.tensor(result, requires_grad=z.requires_grad)
 
     @staticmethod
@@ -24,20 +26,11 @@ class Hyp0F1(Function):
         grad_input = Hyp0F1.apply(b+1, z) / b
         return None, grad_input * grad_output
 
-    @staticmethod
-    def vmap(info, in_dims, b, z):
-        B, Z = torch.meshgrid(torch.tensor(b), z)
-        out = torch.zeros_like(B)
-        for i, j in np.ndindex(B.shape):
-            out[i, j] = Hyp0F1.apply(B[i, j], Z[i, j])
-        out = out.squeeze()
-        return out, 0
-
 
 class Hyp2F1(Function):
     @staticmethod
     def forward(a, b, c, x):
-        x = x.detach()
+        x = x.detach() if x.requires_grad else x
         result = torch.asarray(hyp2f1(a, b, c, x), dtype=torch.float)
         return torch.tensor(result, requires_grad=x.requires_grad)
 
@@ -54,11 +47,3 @@ class Hyp2F1(Function):
         a, b, c, x = ctx.saved_tensors
         grad_input = a * b * Hyp2F1.apply(a+1, b+1, c+1, x) / c
         return None, None, None, grad_input * grad_output
-
-    @staticmethod
-    def vmap(info, in_dims, a, b, c, x):
-        out = torch.zeros(*a.shape, *x.shape)
-        for idx in np.ndindex(a.shape):
-            out[idx] = Hyp2F1.apply(a[idx], b[idx], c[idx], x)
-        out = out.squeeze()
-        return out, 0

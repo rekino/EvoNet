@@ -21,7 +21,7 @@ class TestHyp0F1Function(unittest.TestCase):
         assert torch.allclose(res, true_res)
 
     def test_vmap(self):
-        hyp0f1 = torch.vmap(Hyp0F1.apply, in_dims=(None, 0))
+        hyp0f1 = Hyp0F1.apply
 
         z = torch.linspace(0, 1, 2, requires_grad=False)
         b = 1/2
@@ -29,18 +29,6 @@ class TestHyp0F1Function(unittest.TestCase):
         true_res = torch.cosh(2 * torch.sqrt(z))
 
         assert torch.allclose(res, true_res)
-
-        hyp0f1 = torch.vmap(Hyp0F1.apply, in_dims=(0, 0))
-
-        z = torch.linspace(0, 1, 2, requires_grad=False)
-        b = torch.linspace(0.5, 1.5, 2, requires_grad=False)
-        res = hyp0f1(b, z)
-        true_res_0 = torch.cosh(2 * torch.sqrt(z))
-        temp = torch.sinh(2 * torch.sqrt(z)) / (2*torch.sqrt(z))
-        true_res_1 = torch.where(z > 0, temp, 1)
-
-        assert torch.allclose(res[0, :], true_res_0)
-        assert torch.allclose(res[1, :], true_res_1)
 
     def test_derivative(self):
         z = torch.tensor(1.0, requires_grad=True)
@@ -80,14 +68,3 @@ class TestHyp2F1Function(unittest.TestCase):
         true_res = torch.sqrt(1 - x)
 
         assert torch.allclose(res, true_res)
-
-        a = a * torch.ones(2)
-        b = b * torch.ones(2)
-        c = torch.linspace(0.5, 1.5, 2)
-        hyp2f1 = torch.vmap(Hyp2F1.apply, (None, None, 0, None))
-        res = hyp2f1(a, b, c, x)
-        true_res_0 = (1 - 2*x) / torch.sqrt(1 - x)
-        true_res_1 = torch.sqrt(1 - x)
-
-        assert torch.allclose(res[0, :], true_res_0)
-        assert torch.allclose(res[1, :], true_res_1)
