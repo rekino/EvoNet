@@ -5,7 +5,7 @@ import torch.nn as nn
 from itertools import product
 from enum import Enum
 
-from EvoNet.functions import Hyp0F1, Hyp2F1
+from ..functions import Hyp0F1, Hyp2F1
 
 
 class BoundaryCondition(Enum):
