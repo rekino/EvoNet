@@ -1,4 +1,3 @@
-import numpy as np
 from mpmath import besseljzero as bjz
 import torch
 import torch.nn as nn
@@ -77,27 +76,3 @@ class SphericalHarmonic(nn.Module):
             result.append(activation)
 
         return torch.stack(result)
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
-    module = SphericalHarmonic(2, 3, 4)
-
-    r = torch.linspace(0, 1, 50)
-    t = torch.linspace(-1, 1, 50)
-
-    R = r[:, None] * t[None, :]**0
-    T = t[None, :] * r[:, None]**0
-
-    x = torch.hstack([r[:, None], T])
-    out = module(x).numpy()
-
-    print(np.abs(out).max())
-
-    fig, ax = plt.subplots(3, 4)
-
-    for k, l in np.ndindex((3, 4)):
-        ax[k, l].contourf(R.numpy(), T.numpy(), out[k*4+l])
-
-    plt.show()
