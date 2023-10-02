@@ -3,21 +3,31 @@ from mpmath import besseljzero as bjz
 import torch
 import torch.nn as nn
 from itertools import product
+from enum import Enum
 
 from EvoNet.functions import Hyp0F1, Hyp2F1
 
 
+class BoundaryCondition(Enum):
+    Dirichlet = 'dirichlet'
+    Neumann = 'neumann'
+
+
 class SphericalHarmonic(nn.Module):
-    def __init__(self, xdim, rad_deg, ang_deg, bc='dirichlet') -> None:
+    def __init__(self,
+                 xdim, rad_deg, ang_deg,
+                 bc=BoundaryCondition.Dirichlet
+                 ) -> None:
+
         super().__init__()
         self.xdim = xdim
         self.rad_deg = rad_deg
         self.ang_deg = ang_deg
         self.bc = bc
 
-        if bc == 'neumann':
+        if bc == BoundaryCondition.Neumann:
             self._eigenvalues = self._neumann()
-        elif bc == 'dirichlet':
+        elif bc == BoundaryCondition.Dirichlet:
             self._eigenvalues = self._dirichlet()
         else:
             raise NotImplementedError()

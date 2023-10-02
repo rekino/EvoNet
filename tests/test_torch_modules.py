@@ -2,6 +2,7 @@ import unittest
 import torch
 
 from src.EvoNet.layers import SphericalLinear, SphericalHarmonic
+from src.EvoNet.layers import BoundaryCondition
 
 
 class TestSphericalLinearLayer(unittest.TestCase):
@@ -35,7 +36,7 @@ class TestSphericalHarmonicActivation(unittest.TestCase):
         self.assertEquals(out.shape, (12, 2, 2))
         assert torch.allclose(out[1, 1, :], 0*out[1, 1, :])
 
-        module = SphericalHarmonic(150, 3, 4, bc='neumann')
+        module = SphericalHarmonic(150, 3, 4, bc=BoundaryCondition.Neumann)
         out = module(x)
 
         self.assertEquals(out.shape, (12, 2, 2))
