@@ -39,9 +39,8 @@ class SphericalHarmonic(nn.Module):
 
         for i in range(L):
             order = n/2 + i - 1
-            eigenvalues[:, i] = torch.tensor(
-                [float(bjz(order, m+1)) for m in range(k)]
-                )
+            jpz = [float(bjz(order, m+1)) for m in range(k)]
+            eigenvalues[:, i] = torch.tensor(jpz)
 
         return eigenvalues
 
