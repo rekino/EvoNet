@@ -1,11 +1,10 @@
 import numpy as np
-from mpmath import besseljzero, hyp0f1
+from mpmath import besseljzero as bjz
 import torch
 import torch.nn as nn
 from itertools import product
-from scipy.optimize import brentq
 
-from ..functions import Hyp0F1, Hyp2F1
+from EvoNet.functions import Hyp0F1, Hyp2F1
 
 
 class SphericalHarmonic(nn.Module):
@@ -30,9 +29,9 @@ class SphericalHarmonic(nn.Module):
 
         for i in range(L):
             order = n/2 + i - 1
-            eigenvalues[:, i] = torch.tensor([
-                float(besseljzero(order, m+1)) for m in range(k)
-                ])
+            eigenvalues[:, i] = torch.tensor(
+                [float(bjz(order, m+1)) for m in range(k)]
+                )
 
         return eigenvalues
 
@@ -40,26 +39,9 @@ class SphericalHarmonic(nn.Module):
         n, l, k = self.xdim, self.ang_deg, self.rad_deg
         eigenvalues = torch.zeros(k, l)
 
-        hyp0f1_vec = np.vectorize(hyp0f1)
-        brentq_vec = np.vectorize(brentq)
-
-        def Rp(lam):
-            return l*hyp0f1_vec(n/2+l, -lam**2 / 4) - lam**2 * hyp0f1_vec(n/2+l+1, -lam**2 / 4) / (2*l + n)
-
         for i in range(l):
             order = n/2 + i - 1
-
-            # m = 1
-            # jpz = [besseljzero(order, 1)]
-            # while len(jpz) <= k:
-            #     zero = besseljzero(order, m+1)
-            #     if Rp(jpz[-1]) * Rp(zero) < 0:
-            #         jpz.append(float(zero))
-            #     m += 1
-            
-            # jpz = np.asarray(jpz)
-            # jpz = brentq_vec(Rp, jpz[:-1], jpz[1:])
-            jpz = [float(besseljzero(order, m+1, derivative=1)) for m in range(k)]
+            jpz = [float(bjz(order, m+1, derivative=1)) for m in range(k)]
             eigenvalues[:, i] = torch.tensor(jpz)
 
         return eigenvalues
@@ -86,3 +68,27 @@ class SphericalHarmonic(nn.Module):
             result.append(activation)
 
         return torch.stack(result)
+
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    module = SphericalHarmonic(2, 3, 4)
+
+    r = torch.linspace(0, 1, 50)
+    t = torch.linspace(-1, 1, 50)
+
+    R = r[:, None] * t[None, :]**0
+    T = t[None, :] * r[:, None]**0
+
+    x = torch.hstack([r[:, None], T])
+    out = module(x).numpy()
+
+    print(np.abs(out).max())
+
+    fig, ax = plt.subplots(3, 4)
+
+    for k, l in np.ndindex((3, 4)):
+        ax[k, l].contourf(R.numpy(), T.numpy(), out[k*4+l])
+
+    plt.show()
