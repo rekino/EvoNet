@@ -92,15 +92,20 @@ class SphericalHarmonic(nn.Module):
         t = x[:, 1:]
 
         result = []
-        for k, l in product(range(K), range(L)):
-            radial = -(r * lam[k, l])**2 / 4
-            radial = r**l * Hyp0F1.apply(n/2 + l, radial)
+        for deg_rad, deg_ang in product(range(K), range(L)):
+            radial = -(r * lam[deg_rad, deg_ang])**2 / 4
+            radial = r**deg_ang * Hyp0F1.apply(n/2 + deg_ang, radial)
 
-            d = (n-3) / 2
-            angular = Hyp2F1.apply(-(d+l), 1+l+d, 1+d, (1 - torch.abs(t))/2)
-            angular /= Hyp2F1.apply(-(d+l), 1+l+d, 1+d, torch.zeros(1))
-            angular *= (1 + torch.abs(t) / 2)**(-d)
-            angular = torch.where(t < 0, (-1)**l * angular, angular)
+            if deg_ang == 0:
+                angular = torch.ones_like(t)
+            else:
+                d = (n-3) / 2
+                angular = Hyp2F1.apply(
+                    -(d+deg_ang), 1+deg_ang+d, 1+d, (1 - torch.abs(t))/2)
+                angular /= Hyp2F1.apply(
+                    -(d+deg_ang), 1+deg_ang+d, 1+d, torch.zeros(1))
+                angular *= (1 + torch.abs(t) / 2)**(-d)
+                angular = torch.where(t < 0, (-1)**deg_ang * angular, angular)
 
             activation = radial[:, None] * angular
 
