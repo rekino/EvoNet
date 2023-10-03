@@ -28,13 +28,14 @@ class TestSphericalHarmonicActivation(unittest.TestCase):
         self.assertIsInstance(module, SphericalHarmonic)
 
     def test_forward(self):
-        module = SphericalHarmonic(150, 3, 4)
+        module = SphericalHarmonic(2, 3, 4)
         x = torch.ones(2, 3)
         x[1, :] = torch.zeros(1, 3)
         out = module(x)
 
         self.assertEquals(out.shape, (12, 2, 2))
         assert torch.allclose(out[1, 1, :], 0*out[1, 1, :])
+        assert torch.allclose(out[0, -1, :], out[0, -1, :].max())
 
         module = SphericalHarmonic(150, 3, 4, bc=BoundaryCondition.Neumann)
         out = module(x)
