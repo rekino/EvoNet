@@ -27,8 +27,8 @@ def spherical_harmonic(index, dim, knots=1000):
     y = angular_int(t, dim, index)
     spl = CubicSpline(x, np.flip(y[:, 0]))
 
-    def T(_x, _nu=0):
-        tmp = spl(np.abs(_x), nu=_nu)
+    def T(_x, der=0):
+        tmp = spl(np.abs(_x), nu=der)
         return np.where(_x < 0, (-1)**index * tmp, tmp)
 
     return T
